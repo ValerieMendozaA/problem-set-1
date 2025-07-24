@@ -16,30 +16,31 @@ Do both metrics agree that one model is more accurate than the other? Print this
 from sklearn.calibration import calibration_curve
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.metrics import roc_auc_score
+import pandas as pd
 
-# Calibration plot function 
-def calibration_plot(y_true, y_prob, n_bins=10):
-    """
-    Create a calibration plot with a 45-degree dashed line.
+# Your code here
+         def run_calibration_and_metrics():
+    #  test data
+    df = pd.read_csv('./data/df_arrests_test.csv')
 
-    Parameters:
-        y_true (array-like): True binary labels (0 or 1).
-        y_prob (array-like): Predicted probabilities for the positive class.
-        n_bins (int): Number of bins to divide the data for calibration.
+    # make calibration plots
+    calibration_plot(df['y'], df['pred_lr'], n_bins=5)  calibration_plot(df['y'], df['pred_dt'], n_bins=5)
+    print("Which model is more calibrated? logistic regression usually is.")
 
-    Returns:
-        None
-    """
-    #Calculate calibration values
-    bin_means, prob_true = calibration_curve(y_true, y_prob, n_bins=n_bins)
-    
-    #Create the Seaborn plot
-    sns.set(style="whitegrid")
-    plt.plot([0, 1], [0, 1], "k--")
-    plt.plot(prob_true, bin_means, marker='o', label="Model")
-    
-    plt.xlabel("Mean Predicted Probability")
-    plt.ylabel("Fraction of Positives")
-    plt.title("Calibration Plot")
-    plt.legend(loc="best")
-    plt.show()
+    # check top 50 ppv
+    ppv_lr = df.sort_values('pred_lr', ascending=False).head(50)['y'].mean()   ppv_dt = df.sort_values('pred_dt', ascending=False).head(50)['y'].mean()
+
+  # auc scores 
+ auc_lr = roc_auc_score(df['y'], df['pred_lr'])  auc_dt = roc_auc_score(df['y'], df['pred_dt'])
+
+    print("PPV top 50 LR:", ppv_lr) print("PPV top 50 DT:", ppv_dt)
+    print("AUC LR:", auc_lr) print("AUC DT:", auc_dt)
+
+    # better check
+    if (ppv_lr > ppv_dt) and (auc_lr > auc_dt):
+        print("both say logistic regression is better")
+    elif (ppv_lr < ppv_dt) and (auc_lr < auc_dt):
+        print("both say decision tree is better")
+    else:
+        print("metrics give mixed results")
