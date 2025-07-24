@@ -20,26 +20,22 @@ PART 2: Pre-processing
 
 import pandas as pd
 
-
 # Your code here
-
 def run_preprocessing():
   pred_universe = pd.read_csv("./data/pred_universe_raw.csv")
   arrest_events = pd.read_csv("./data/arrest_events_raw.csv")
   pred_universe['arrest_date_univ'] = pd.to_datetime(pred_universe['arrest_date_univ'])
   arrest_events['arrest_date_event'] = pd.to_datetime(arrest_events['arrest_date_event'])
-
+#merge
 df_arrests = pd.merge(pred_universe, arrest_events, on='person_id', how='outer', suffixes=('_univ', '_event'))
-
-    y = []   for _, row in df_arrests.iterrows():
+ y = []   for _, row in df_arrests.iterrows():
         if pd.isna(row['arrest_date_univ']):
             y.append(0)
             continue cond = (arrest_events['person_id'] == row['person_id']) & \
                (arrest_events['arrest_date_event'] > row['arrest_date_univ']) & \
                (arrest_events['arrest_date_event'] <= row['arrest_date_univ'] + pd.Timedelta(365, unit='d')) & \
                (arrest_events['charge_type'] == 'felony')
-  y.append(1 if arrest_events.loc[cond].any().any() else 0)
-    df_arrests['y'] = y
+  y.append(1 if arrest_events.loc[cond].any().any() else 0)   df_arrests['y'] = y
 
 
     print("What share of arrestees in the df_arrests table were rearrested for a felony crime in the next year?")
